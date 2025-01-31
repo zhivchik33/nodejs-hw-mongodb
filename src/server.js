@@ -6,7 +6,7 @@ import { getEnvVar } from './utils/getEnvVar.js';
 
 import * as contactServices from './services/contacts-services.js';
 
-export const setupServer = () => {
+export const startServer = () => {
   const app = express();
   app.use(cors());
   app.use(express.json());
