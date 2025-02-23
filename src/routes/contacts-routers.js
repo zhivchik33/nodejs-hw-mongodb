@@ -1,7 +1,9 @@
-
 import { Router } from 'express';
 import * as contactsController from '../controllers/contacts-controller.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { validateBody } from '../utils/validateBody.js';
+import { isValidId } from '../middlewares/isValidid.js';
+import { contactsAddSchema, contactsUpdateSchema } from '../validation/contacts-schemas.js';
 
 const contactsRouter = Router();
 
