@@ -11,21 +11,33 @@ contactsRouter.get('/', ctrlWrapper(contactsController.getContactsController));
 
 contactsRouter.get(
   '/:contactId',
+  isValidId,
   ctrlWrapper(contactsController.getContactsByIdController),
 );
 
-contactsRouter.post('/', ctrlWrapper(contactsController.addContactController));
+contactsRouter.post(
+  '/',
+  validateBody(contactsAddSchema),
+  ctrlWrapper(contactsController.addContactController),
+);
 
 contactsRouter.put(
   '/:contactId',
+  isValidId,
+  validateBody(contactsUpdateSchema),
   ctrlWrapper(contactsController.upsertContactController),
 );
+
 contactsRouter.patch(
   '/:contactId',
+  isValidId,
+  validateBody(contactsUpdateSchema),
   ctrlWrapper(contactsController.patchContactController),
 );
+
 contactsRouter.delete(
   '/:contactId',
+  isValidId,
   ctrlWrapper(contactsController.deleteContactController),
 );
 
