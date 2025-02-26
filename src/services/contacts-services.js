@@ -28,7 +28,7 @@ export const getContacts = async ({
 
   const paginationData = calcPaginationData({ total, page, perPage });
   return {
-    items,
+    data: items,
     ...paginationData,
   };
 };
@@ -44,8 +44,10 @@ export const updateContact = async (_id, payload, options = {}) => {
 
   const isNew = Boolean(result.lastErrorObject.upserted);
 
-  return { isNew, data: result.value };
+  return result.value;
 };
 
 export const deleteContact = (filter) =>
   ContactCollection.findOneAndDelete(filter);
+
+
