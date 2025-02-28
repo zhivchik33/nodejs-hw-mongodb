@@ -28,12 +28,10 @@ export const getContacts = async ({
 
   const paginationData = calcPaginationData({ total, page, perPage });
   return {
-    status: 200,
-    message: "Successfully found contacts!",
-    data: {
+
       data: items,
       ...paginationData
-    }
+   
   }
 };
 export const getContactById = (id) => ContactCollection.findById(id);
