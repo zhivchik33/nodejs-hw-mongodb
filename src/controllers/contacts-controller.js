@@ -17,6 +17,7 @@ export const getContactsController = async (req, res) => {
     sortBy,
     sortOrder,
     filter,
+    userId: req.user._id, 
   });
 
   res.json({
@@ -46,7 +47,12 @@ export const getContactsByIdController = async (req, res) => {
 };
 
 export const addContactController = async (req, res) => {
-  const data = await contactServices.addContact(req.body);
+  const newContact = {
+    ...req.body,
+    userId: req.user._id, 
+  };
+
+  const data = await contactServices.addContact(newContact);
   res.status(201).json({
     status: 201,
     message: 'Successfully created a contact!',
@@ -61,19 +67,21 @@ export const upsertContactController = async (req, res) => {
     throw createHttpError(400, 'Invalid contact ID'); 
   }
 
-  const { isNew, data } = await contactServices.updateContact(
+  const updatedContact = await contactServices.updateContact(
     contactId,
     req.body,
-    {
-      upsert: true,
-    },
+    { upsert: true }
   );
 
-  const status = isNew ? 201 : 200;
+  if (!updatedContact) {
+    throw createHttpError(500, 'Failed to upsert contact');
+  }
+
+  const status = updatedContact.isNew ? 201 : 200;
   res.status(status).json({
     status,
     message: `Successfully upserted a contact!`,
-    data,
+    data: updatedContact,
   });
 };
 
@@ -94,8 +102,7 @@ export const patchContactController = async (req, res) => {
     message: `Successfully patched a contact!`,
     data: result,
   });
-}
-
+};
 
 export const deleteContactController = async (req, res) => {
   const { contactId } = req.params;
