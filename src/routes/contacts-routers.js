@@ -6,6 +6,7 @@ import { isValidId } from '../middlewares/isValidid.js';
 import { contactsAddSchema, contactsUpdateSchema } from '../validation/contacts-schemas.js';
 
 const contactsRouter = Router();
+contactsRouter.use(authenticate);
 
 contactsRouter.get('/', ctrlWrapper(contactsController.getContactsController));
 
