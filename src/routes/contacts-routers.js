@@ -4,6 +4,7 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { validateBody } from '../utils/validateBody.js';
 import { isValidId } from '../middlewares/isValidid.js';
 import { contactsAddSchema, contactsUpdateSchema } from '../validation/contacts-schemas.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
 const contactsRouter = Router();
 contactsRouter.use(authenticate);
