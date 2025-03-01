@@ -1,58 +1,119 @@
-import ContactCollection from '../db/models/Contacts.js';
-import { calcPaginationData } from '../utils/calcPaginationData.js';
-export const getContacts = async ({
-  page = 1,
-  perPage = 10,
-  sortBy = 'name',
-  sortOrder = 'asc',
-  filter = {},
-  userId,
+import * as contactServices from '../services/contacts-services.js';
+import createHttpError from 'http-errors';
+import mongoose from 'mongoose';
+import { parsePaginationParams } from '../utils/parsePaginationParams.js';
+import { parseSortParams } from '../utils/parseSortParams.js';
+import { sortByList } from '../db/models/Contacts.js';
+import { parseContactsFilterParams } from '../utils/filters/parseContactsFilterParams.js';
 
-}) => {
-  const limit = perPage;
-  const skip = (page - 1) * limit;
-  const contactsQuery = ContactCollection.find({ userId });
-  
+export const getContactsController = async (req, res) => {
+  const { page, perPage } = parsePaginationParams(req.query);
+  const { sortBy, sortOrder } = parseSortParams(req.query, sortByList);
+  const filter = parseContactsFilterParams(req.query);
 
-  if (filter.type) {
-    contactsQuery.where('contactType').equals(filter.type);
-  }
-  if (filter.isFavourite) {
-    contactsQuery.where('isFavourite').equals(filter.isFavourite);
-  }
-  const total = await ContactCollection.find()
-    .merge(contactsQuery)
-    .countDocuments();
-
-  const items = await contactsQuery
-    .skip(skip)
-    .limit(limit)
-    .sort({ [sortBy]: sortOrder });
-
-  const paginationData = calcPaginationData({ total, page, perPage });
-  return {
-
-      data: items,
-      ...paginationData
-   
-  }
-};
-export const getContactById = (id) => ContactCollection.findById(id);
-export const addContact = (payload) => ContactCollection.create(payload);
-export const updateContact = async (_id, payload, options = {}) => {
-  const { upsert } = options;
-  const result = await ContactCollection.findOneAndUpdate({ _id }, payload, {
-    upsert,
-    includeResultMetadata: true,
+  const contacts = await contactServices.getContacts({
+    page,
+    perPage,
+    sortBy,
+    sortOrder,
+    filter,
+    userId: req.user._id, 
   });
-  if (!result || !result.value) return null;
 
-  const isNew = Boolean(result.lastErrorObject.upserted);
-
-  return result.value;
+  res.json({
+    status: 200,
+    message: 'Successfully found contacts!',
+    data: contacts,
+  });
 };
 
-export const deleteContact = (filter) =>
-  ContactCollection.findOneAndDelete(filter);
+export const getContactsByIdController = async (req, res) => {
+  const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    throw createHttpError(400, 'Invalid contact ID');
+  }
+
+  const data = await contactServices.getContactById(contactId);
+  if (!data || data.userId.toString() !== req.user._id.toString()) {
+    throw createHttpError(404, `Contact not found or does not belong to the user`);
+  }
+
+  res.json({
+    status: 200,
+    message: `Successfully found contact with id ${contactId}!`,
+    data,
+  });
+};
+
+export const addContactController = async (req, res) => {
+  const newContact = {
+    ...req.body,
+    userId: req.user._id, 
+  };
+
+  const data = await contactServices.addContact(newContact);
+  res.status(201).json({
+    status: 201,
+    message: 'Successfully created a contact!',
+    data,
+  });
+};
+
+export const upsertContactController = async (req, res) => {
+  const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    throw createHttpError(400, 'Invalid contact ID');
+  }
+
+  const updatedContact = await contactServices.updateContact(contactId, req.body, { upsert: true }, req.user._id);
+
+  if (!updatedContact) {
+    throw createHttpError(500, 'Failed to upsert contact');
+  }
+
+  const status = updatedContact.isNew ? 201 : 200;
+  res.status(status).json({
+    status,
+    message: `Successfully upserted a contact!`,
+    data: updatedContact,
+  });
+};
+
+export const patchContactController = async (req, res) => {
+  const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    throw createHttpError(400, 'Invalid contact ID');
+  }
+
+  const result = await contactServices.updateContact(contactId, req.body, {}, req.user._id);
+
+  if (!result) {
+    throw createHttpError(404, `Contact not found`);
+  }
+
+  res.json({
+    status: 200,
+    message: `Successfully patched a contact!`,
+    data: result,
+  });
+};
+
+export const deleteContactController = async (req, res) => {
+  const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    throw createHttpError(400, 'Invalid contact ID');
+  }
+
+  const data = await contactServices.deleteContact({ _id: contactId, userId: req.user._id });
+
+  if (!data) {
+    throw createHttpError(404, `Contact not found`);
+  }
+  res.status(204).send();
+};
 
 
