@@ -66,5 +66,5 @@ export const logoutController = async (req, res) => {
   res.clearCookie('refreshToken');
   res.clearCookie('sessionId');
 
-  res.status(204).send();
+  res.status(204).end();
 };
