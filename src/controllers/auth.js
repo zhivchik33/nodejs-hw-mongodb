@@ -1,5 +1,3 @@
-
-
 import * as authServices from '../services/auth.js';
 
 const setupSession = (res, session) => {
@@ -66,5 +64,5 @@ export const logoutController = async (req, res) => {
   res.clearCookie('refreshToken');
   res.clearCookie('sessionId');
 
-  res.status(204).end();
+  res.status(204).send();
 };

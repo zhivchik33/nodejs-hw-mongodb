@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+
 import { getEnvVar } from './utils/getEnvVar.js';
+
 import contactsRouter from './routes/contacts-routers.js';
 import authRouter from './routes/auth.js';
 import { logger } from './middlewares/logger.js';
@@ -13,7 +15,7 @@ export const startServer = () => {
   app.use(cors());
   app.use(express.json());
   app.use(cookieParser());
-  app.use((routes));
+
   app.use(logger);
 
   app.use('/auth', authRouter);

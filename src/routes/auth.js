@@ -1,5 +1,3 @@
-
-
 import { Router } from 'express';
 import { validateBody } from '../utils/validateBody.js';
 import { authRegisterSchema, authLoginSchema } from '../validation/auth.js';

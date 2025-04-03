@@ -1,4 +1,3 @@
-
 const parseType = (type) => {
   const isString = typeof type === 'string';
   if (!isString) return;
